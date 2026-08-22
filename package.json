@@ -1,0 +1,36 @@
+{
+  "name": "acc-form-automation",
+  "version": "1.0.0",
+  "description": "Browser and form automation powered by Playwright and MCP",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "codegen": "playwright codegen",
+    "mcp:stdio": "playwright-mcp-server",
+    "mcp:http": "playwright-mcp-server --port 8931",
+    "example:form": "node examples/form-automation-example.js",
+    "usalearns:signin": "node scripts/usalearns-sign-in.js",
+    "usalearns:signin:headed": "HEADLESS=false node scripts/usalearns-sign-in.js",
+    "audit": "node scripts/audit-all-students.js",
+    "fix:issues": "node scripts/reprocess-issues.js",
+    "install:browsers": "playwright install chromium"
+  },
+  "keywords": [
+    "playwright",
+    "mcp",
+    "automation",
+    "forms"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@executeautomation/playwright-mcp-server": "^1.0.12",
+    "@playwright/test": "^1.50.1",
+    "dotenv": "^16.4.7"
+  },
+  "dependencies": {
+    "csv-parse": "^5.6.0",
+    "tesseract.js": "^5.1.1"
+  }
+}
