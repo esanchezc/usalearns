@@ -6,7 +6,22 @@ import { createWorker } from 'tesseract.js';
 import 'dotenv/config';
 
 // Configuración general
-const CSV_FILE_PATH = process.env.CSV_PATH || path.resolve('Viviana F271.csv');
+function resolveCsvPath() {
+  const args = process.argv.slice(2);
+  const csvArgIndex = args.indexOf('--csv');
+  if (csvArgIndex !== -1 && args[csvArgIndex + 1]) {
+    return path.resolve(args[csvArgIndex + 1]);
+  }
+  if (process.env.CSV_PATH) {
+    return path.resolve(process.env.CSV_PATH);
+  }
+  if (fs.existsSync(path.resolve('Viviana F272.csv'))) {
+    return path.resolve('Viviana F272.csv');
+  }
+  return path.resolve('Viviana F271.csv');
+}
+
+const CSV_FILE_PATH = resolveCsvPath();
 const HEADLESS = process.env.HEADLESS !== 'false';
 
 /**
@@ -359,8 +374,12 @@ async function main() {
 
   const rangeArgIndex = args.indexOf('--range');
   const studentIdArgIndex = args.indexOf('--student');
+  const isAll = args.includes('--all');
 
-  if (rangeArgIndex !== -1 && args[rangeArgIndex + 1]) {
+  if (isAll) {
+    targetStudents = allStudents;
+    console.log(`🎯 Modo ALL: Procesando TODOS los ${targetStudents.length} estudiantes...`);
+  } else if (rangeArgIndex !== -1 && args[rangeArgIndex + 1]) {
     const [start, end] = args[rangeArgIndex + 1].split('-').map(n => parseInt(n.trim(), 10));
     targetStudents = allStudents.filter(s => s.lineNumber >= start && s.lineNumber <= end);
     console.log(`🎯 Rango seleccionado: Filas ${start} a ${end}`);

@@ -12,8 +12,12 @@
     "example:form": "node examples/form-automation-example.js",
     "usalearns:signin": "node scripts/usalearns-sign-in.js",
     "usalearns:signin:headed": "HEADLESS=false node scripts/usalearns-sign-in.js",
+    "usalearns:f272": "node scripts/usalearns-sign-in.js --csv 'Viviana F272.csv' --all",
+    "usalearns:f272:headed": "HEADLESS=false node scripts/usalearns-sign-in.js --csv 'Viviana F272.csv' --all",
     "audit": "node scripts/audit-all-students.js",
+    "audit:f272": "node scripts/audit-all-students.js --csv 'Viviana F272.csv'",
     "fix:issues": "node scripts/reprocess-issues.js",
+    "fix:issues:f272": "node scripts/reprocess-issues.js --csv 'Viviana F272.csv'",
     "install:browsers": "playwright install chromium"
   },
   "keywords": [

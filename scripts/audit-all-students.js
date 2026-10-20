@@ -4,7 +4,22 @@ import * as path from 'path';
 import { parse } from 'csv-parse/sync';
 import 'dotenv/config';
 
-const CSV_FILE_PATH = process.env.CSV_PATH || path.resolve('Viviana F271.csv');
+function resolveCsvPath() {
+  const args = process.argv.slice(2);
+  const csvArgIndex = args.indexOf('--csv');
+  if (csvArgIndex !== -1 && args[csvArgIndex + 1]) {
+    return path.resolve(args[csvArgIndex + 1]);
+  }
+  if (process.env.CSV_PATH) {
+    return path.resolve(process.env.CSV_PATH);
+  }
+  if (fs.existsSync(path.resolve('Viviana F272.csv'))) {
+    return path.resolve('Viviana F272.csv');
+  }
+  return path.resolve('Viviana F271.csv');
+}
+
+const CSV_FILE_PATH = resolveCsvPath();
 const HEADLESS = process.env.HEADLESS !== 'false';
 
 /**
