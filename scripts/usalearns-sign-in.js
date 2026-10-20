@@ -181,8 +181,8 @@ async function registerStudent(page, student, maxRetries = 2) {
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(2000);
 
-      const pageText = await page.textContent('body');
-      const isRegistered = pageText.includes('Sign off') || pageText.includes(student.email) || pageText.includes('My Home');
+      const isSignOff = await page.getByRole('link', { name: /sign off/i }).first().isVisible().catch(() => false);
+      const isRegistered = isSignOff || page.url().includes('student-home');
 
       if (isRegistered) {
         console.log(`🎉 ¡Cuenta creada con éxito!`);
@@ -192,7 +192,7 @@ async function registerStudent(page, student, maxRetries = 2) {
 
       const errorEl = page.locator('.validation-summary-errors, .field-validation-error');
       const errorText = (await errorEl.first().isVisible().catch(() => false))
-        ? (await errorEl.first().textContent()).trim()
+        ? (await errorEl.allTextContents()).map(t => t.trim()).filter(Boolean).join(' | ')
         : 'Error en formulario';
       
       console.log(`⚠️ Intento ${attempt} falló: ${errorText}`);
@@ -230,11 +230,12 @@ async function ensureStudentLoggedIn(page, student) {
 
   if (isLoggedIn) {
     console.log(`✅ Sesión iniciada para ${student.email}`);
-    return true;
+    return { accountCreated: false };
   }
 
   console.log(`⚠️ Cuenta no existe o login falló. Registrando automáticamente...`);
-  return await registerStudent(page, student);
+  await registerStudent(page, student);
+  return { accountCreated: true };
 }
 
 /**
@@ -338,13 +339,16 @@ async function processStudent(browser, student, index, total) {
     id: student.id,
     name: student.rawName,
     email: student.email,
+    accountStatus: 'Desconocido',
     classesTotal: student.classKeys.length,
     classesEnrolled: 0,
     status: '',
   };
 
   try {
-    await ensureStudentLoggedIn(page, student);
+    const loginInfo = await ensureStudentLoggedIn(page, student);
+    result.accountStatus = loginInfo.accountCreated ? 'Creada' : 'Ya existía';
+
     const enrollInfo = await enrollInClasses(page, student);
 
     result.classesEnrolled = enrollInfo.confirmedClassesWithAcc;
@@ -429,14 +433,25 @@ async function main() {
       Fila: s.row,
       ID: s.id,
       Nombre: s.name,
-      Email: s.email,
-      'Clases Enroladas': s.classesEnrolled,
+      Cuenta: s.accountStatus,
+      'Clases Enroladas': `${s.classesEnrolled}/${s.classesTotal}`,
       Resultado: s.status,
     }))
   );
 
+  const totalExisting = summary.filter(s => s.accountStatus === 'Ya existía').length;
+  const totalCreated = summary.filter(s => s.accountStatus === 'Creada').length;
+  const totalErrors = summary.filter(s => s.status.startsWith('❌')).length;
   const totalSuccess = summary.filter(s => s.classesEnrolled >= s.classesTotal).length;
-  console.log(`\n🏆 Total completados exitosamente: ${totalSuccess}/${summary.length}`);
+
+  console.log(`\n============================================================`);
+  console.log(`📈 BALANCE FINAL`);
+  console.log(`============================================================`);
+  console.log(`👥 Total de estudiantes procesados: ${summary.length}`);
+  console.log(`🔑 Cuentas que ya existían: ${totalExisting}`);
+  console.log(`📝 Cuentas nuevas creadas: ${totalCreated}`);
+  console.log(`❌ Estudiantes con errores: ${totalErrors}`);
+  console.log(`🎓 Estudiantes con 6/6 clases activas: ${totalSuccess}`);
   console.log(`💾 Reporte guardado en: ${resultsFilePath}`);
 }
 
